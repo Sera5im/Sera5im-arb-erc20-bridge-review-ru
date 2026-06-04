@@ -22,13 +22,13 @@ function initialize(
 Что делает:
 
 - инициализирует L1 router
-- фиксирует `owner`, `defaultGateway`, `counterpartGateway`, `inbox`
+- фиксирует `owner`, `defaultGateway`, `counterpartGateway` и `inbox`
 
 Invariants:
 
-- router initialization должен фиксировать корректный `owner`
-- router initialization должен фиксировать корректный `counterpartGateway` и `defaultGateway`
-- router initialization должен фиксировать корректный `inbox`
+- router initialization должен зафиксировать правильный `owner`
+- router initialization должен зафиксировать правильные `counterpartGateway` и `defaultGateway`
+- router initialization должен зафиксировать правильный `inbox`
 
 ## 2. L1GatewayRouter.setDefaultGateway(...)
 
@@ -53,7 +53,7 @@ function setDefaultGateway(
 Что делает:
 
 - меняет default routing path
-- инициирует corresponding L2 router update
+- инициирует соответствующий L2 router update
 
 Invariants:
 
@@ -107,7 +107,7 @@ function setGateway(
 
 Invariants:
 
-- gateway registration path должен идти только через intended registration logic
+- gateway registration path должен идти через intended registration logic
 - single-token gateway mutation не должна обходить downstream correspondence checks
 
 ## 5. L1GatewayRouter.setGateways(...)
@@ -136,7 +136,7 @@ function setGateways(
 Что делает:
 
 - batch-обновляет router-level gateway mappings
-- отправляет corresponding update на L2
+- отправляет соответствующий update на L2
 
 Invariants:
 
@@ -161,7 +161,7 @@ function initialize(
 
 Invariants:
 
-- L2 router initialization должен фиксировать counterpart routing model
+- L2 router initialization должен зафиксировать counterpart routing model
 
 ## 7. L2GatewayRouter.setGateway(...)
 
@@ -222,7 +222,7 @@ function postUpgradeInit() external {
 
 Что делает:
 
-- post-upgrade hook для proxy-controlled L1 gateway
+- работает как post-upgrade hook для proxy-controlled L1 gateway
 
 Invariants:
 
@@ -246,7 +246,7 @@ function _initialize(
 Что делает:
 
 - инициализирует L1 gateway
-- фиксирует counterpart, router, inbox
+- фиксирует counterpart, router и inbox
 
 Invariants:
 
@@ -264,7 +264,7 @@ function postUpgradeInit() external {
 
 Что делает:
 
-- post-upgrade hook для proxy-controlled L2 gateway
+- работает как post-upgrade hook для proxy-controlled L2 gateway
 
 Invariants:
 
