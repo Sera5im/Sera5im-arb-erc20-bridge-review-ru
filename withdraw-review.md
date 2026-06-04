@@ -57,16 +57,16 @@ function outboundTransfer(
 
 - начинает L2 -> L1 withdraw path
 - определяет реального `_from`
-- проверяет expected L1/L2 token pair
-- запускает burn
+- валидирует expected L1/L2 token pair
+- запускает burn step
 - инициирует L2 -> L1 withdrawal message
 
 Invariants:
 
 - normal withdraw path не должен принимать `msg.value`
-- router path и direct path должны детерминированно определить `_from` и `_extraData`
-- withdraw должен идти только через корректную deployed L2 representation ожидаемого L1 token
-- source-side accounting должен завершиться до creation of withdrawal message
+- router path и direct path должны однозначно определять `_from` и `_extraData`
+- withdraw должен идти только через правильную deployed L2 representation ожидаемого L1 token
+- source-side accounting должен завершиться до создания withdrawal message
 
 ## 2. L2ArbitrumGateway.outboundEscrowTransfer(...)
 
@@ -118,8 +118,8 @@ function triggerWithdrawal(
 
 Invariants:
 
-- current withdrawal должен получить `id` именно от transport-side creation path
-- current `currExitNum` должен относиться именно к текущему initiated withdrawal
+- текущий withdrawal должен получать свой `id` именно от transport-side creation path
+- текущий `currExitNum` должен относиться именно к текущему initiated withdrawal
 
 ## 4. L2ArbitrumGateway.getOutboundCalldata(...)
 
@@ -146,14 +146,14 @@ function getOutboundCalldata(
 
 Что делает:
 
-- строит payload для future L1 finalize
-- включает `token/sender/recipient/amount` semantics и текущий `exitNum`
+- строит payload для будущего L1 finalize
+- включает `token/sender/recipient/amount` и текущий `exitNum`
 
 Invariants:
 
 - outbound payload должен target'ить именно `finalizeInboundTransfer`
-- payload должен сохранять `_token / _from / _to / _amount` semantics без silent rewrite
-- current `exitNum` должен включаться в payload до последующего transport-side increment
+- payload должен сохранять token, sender, recipient и amount
+- текущий `exitNum` должен входить в payload до следующего transport-side increment
 
 ## 5. L2ArbitrumGateway.createOutboundTx(...)
 
@@ -183,7 +183,7 @@ Invariants:
 
 - `exitNum` не должен инкрементироваться до inclusion into current payload
 - transport-facing withdraw path должен target'ить именно `counterpartGateway`
-- default withdraw message не должен нести L1 callvalue
+- стандартный withdraw message не должен нести L1 callvalue
 
 ## 6. L1ArbitrumGateway.finalizeInboundTransfer(...)
 
@@ -214,13 +214,13 @@ function finalizeInboundTransfer(
 
 - принимает counterpart-gated L2 -> L1 finalize call
 - парсит withdrawal payload
-- резолвит final recipient
-- выполняет final L1 release
+- определяет итогового recipient
+- делает final L1 release
 
 Invariants:
 
 - L1 finalize path должен вызываться только `counterpartGateway`
-- final L1 release должен использовать уже post-resolution `_to`
+- final L1 release должен использовать уже resolved `_to`
 
 ## 7. L1ArbitrumGateway.inboundEscrowTransfer(...)
 
@@ -236,9 +236,9 @@ function inboundEscrowTransfer(
 
 Что делает:
 
-- выполняет final L1 release escrowed token получателю
+- делает final L1 release escrowed token получателю
 
 Invariants:
 
-- final release должен использовать именно validated `_l1Token`
-- final release должен идти именно итоговому `_dest` и на `_amount`
+- final release должен использовать validated `_l1Token`
+- final release должен идти в resolved `_dest` на `_amount`
