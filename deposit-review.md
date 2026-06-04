@@ -51,12 +51,12 @@ function outboundTransferCustomRefund(
 Что делает:
 
 - выбирает gateway для `_token`
-- упаковывает router-origin semantics
-- передает deposit в соответствующий L1 gateway
+- сохраняет router-origin semantics
+- передает deposit в нужный L1 gateway
 
 Invariants:
 
-- router-level deposit path должен направляться в gateway, выбранный routing surface
+- deposit path на уровне router должен идти в gateway, который выбрал routing surface
 - router-origin semantics должны сохраняться при переходе в gateway layer
 
 ## 2. L1ArbitrumGateway.outboundTransferCustomRefund(...)
@@ -117,8 +117,8 @@ function outboundTransferCustomRefund(
 - принимает routed deposit
 - определяет реального `_from`
 - парсит user-encoded data
-- валидирует L1 token и configured L2 representation
-- выполняет escrow
+- валидирует L1 token и настроенную L2 representation
+- делает escrow
 - строит outbound payload
 - инициирует L1 -> L2 deposit message
 
@@ -126,8 +126,8 @@ Invariants:
 
 - gateway-level deposit path должен вызываться только через router
 - source-side accounting должен завершиться до payload construction и deposit initiation
-- deposit path не должен строиться по невалидному L1 token или без configured L2 representation
-- наружу должен возвращаться именно текущий deposit sequence number
+- deposit path не должен строиться по невалидному L1 token или без настроенной L2 representation
+- функция должна возвращать текущий deposit sequence number
 
 ## 3. L1ArbitrumGateway.outboundEscrowTransfer(...)
 
@@ -152,7 +152,7 @@ function outboundEscrowTransfer(
 Invariants:
 
 - source-side accounting должен забирать актив именно с `_from` на gateway contract
-- дальше по flow должен идти фактически полученный amount, а не слепо номинальный `_amount`
+- дальше по flow должен идти фактически полученный amount, а не просто номинальный `_amount`
 
 ## 4. L1ArbitrumGateway.getOutboundCalldata(...)
 
@@ -182,12 +182,12 @@ function getOutboundCalldata(
 Что делает:
 
 - строит payload для destination-side L2 finalize
-- сохраняет `_l1Token / _from / _to / _amount` semantics
+- сохраняет `_l1Token / _from / _to / _amount`
 
 Invariants:
 
 - outbound payload должен target'ить именно `finalizeInboundTransfer`
-- payload должен сохранять business-level deposit semantics без silent rewrite
+- payload должен сохранять token, sender, recipient и amount deposit path
 
 ## 5. L1ArbitrumGateway._initiateDeposit(...)
 
@@ -221,7 +221,7 @@ function _initiateDeposit(
 
 Invariants:
 
-- transport-facing deposit creation должен использовать уже построенное outbound calldata без semantic rewrite
+- transport-facing deposit creation должен использовать уже готовое outbound calldata и не менять его смысл
 
 ## 6. L1ArbitrumGateway.createOutboundTxCustomRefund(...)
 
@@ -255,14 +255,14 @@ function createOutboundTxCustomRefund(
 
 Что делает:
 
-- переводит подготовленный deposit payload в retryable creation on transport layer
-- форвардит `msg.value` как funding for inbox path
+- переводит подготовленный deposit payload в retryable creation на transport layer
+- форвардит `msg.value` как funding для inbox path
 - target'ит `counterpartGateway`
 
 Invariants:
 
 - transport-facing deposit path должен target'ить именно `counterpartGateway`
-- callvalue semantics должны быть детерминированными между gateway layer и inbox funding layer
+- callvalue semantics должны оставаться согласованными между gateway layer и inbox funding layer
 
 ## 7. L2ArbitrumGateway.finalizeInboundTransfer(...)
 
@@ -312,16 +312,16 @@ function finalizeInboundTransfer(
 
 - принимает counterpart-gated L1 -> L2 finalize call
 - парсит payload
-- вычисляет expected L2 token
+- определяет expected L2 token
 - обрабатывает no-contract branch
 - обрабатывает invalid-mapping fallback branch
-- на normal branch выполняет final L2 credit
+- на normal branch делает final L2 credit
 
 Invariants:
 
-- destination-side finalize path должен быть counterpart-gated
-- missing contract branch не должен silently продолжать normal mint path
-- invalid L1/L2 token correspondence не должна завершаться normal credit branch
+- destination-side finalize path должен оставаться counterpart-gated
+- missing-contract branch не должен тихо продолжать normal mint path
+- invalid L1/L2 token correspondence не должна заканчиваться normal credit branch
 - final L2 credit должен происходить только по validated expected token path
 
 ## 8. L2ArbitrumGateway.inboundEscrowTransfer(...)
@@ -338,9 +338,9 @@ function inboundEscrowTransfer(
 
 Что делает:
 
-- выполняет final L2 credit через mint соответствующего L2 token
+- делает final L2 credit через mint соответствующего L2 token
 
 Invariants:
 
-- final L2 credit должен использовать именно validated expected token address
-- final credit должен идти именно `_dest` и на `_amount`
+- final L2 credit должен использовать validated expected token address
+- final credit должен идти в `_dest` на `_amount`
